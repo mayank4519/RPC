@@ -93,3 +93,31 @@ de_serialize_data(char *dest, ser_buff_t *b, int size) {
     memcpy(dest, b->b + b->next, size);
     b->next += size;
 }
+
+void
+serialize_buffer_skip(ser_buff_t *b, int nbytes) {
+
+    int avail_size = get_serialize_buffer_available_size(b);
+    int resize_flag = 0;
+
+    //increase the total buffer size
+    while (avail_size < nbytes) {
+        b->size *= 2;
+        avail_size = get_serialize_buffer_available_size(b);
+        resize_flag = 1;
+    }
+ 
+    if (resize_flag == 0) {
+	b->next += nbytes;
+	return;
+    }
+
+    b->b = realloc(b->b, b->size);
+    b->next += nbytes;
+}
+
+void
+reset_serialize_buffer(ser_buff_t *b) {
+
+    b->next = 0;
+}
