@@ -1,3 +1,8 @@
+Steps:
+1.Run compile.sh file present inside Deserialization/
+2. Run compile.sh present in RPC/ folder.
+3. Execute ./server and ./client in 2 different terminals. First server then client.
+
 # RPC
 Build remote procedure calls from scratch using C language.
 
