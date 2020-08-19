@@ -72,13 +72,13 @@ serialize_data(ser_buff_t *b, char *data, int nbytes) {
     }
 
     if (resize_flag == 0) {
-        memcpy(b->b + b->next, data, nbytes);
+        memcpy((char*)(b->b + b->next), data, nbytes);
     	b->next += nbytes;
     	return;
     }
 
     b->b = realloc(b->b, b->size);
-    memcpy(b->b + b->next, data, nbytes);
+    memcpy((char*)(b->b + b->next), data, nbytes);
     b->next += nbytes;
     return;
 }
@@ -90,7 +90,7 @@ de_serialize_data(char *dest, ser_buff_t *b, int size) {
     if((b->size - b->next) < size)  assert(0);
     if(!size)  return;
 
-    memcpy(dest, b->b + b->next, size);
+    memcpy(dest, (char*)(b->b + b->next), size);
     b->next += size;
 }
 

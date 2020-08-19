@@ -81,7 +81,8 @@ deserialize_person(ser_buff_t *b) {
     de_serialize_data((char*)p->name, b, MAX_NAME_SIZE);
     de_serialize_data((char*)&(p->age), b, sizeof(int));
     de_serialize_data((char*)&(p->weight), b, sizeof(int));
-
+    
     p->occ = deserialize_occupation(b);
+    printf("--name=%s, age=%d, weight=%d--\n", p->name, p->age, p->weight);
     return p;
 }

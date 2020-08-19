@@ -6,17 +6,17 @@
 #include <netinet/in.h>
 #include "person.h"
 
-#define PORT 8080
+#define PORT 2000
 
 int main() {
 
    ser_buff_t *buf;
-   struct sockaddr_in addr;
-   int addrlen = sizeof(addr);
-   int sock, new_sock, opt = 1;
+   struct sockaddr_in addr, client_addr;
+   int addrlen = sizeof(struct sockaddr);
+   int sock, opt = 1, len = 0;
 
    /*Socker creation code start*/
-   if((sock = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+   if((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
        perror("socket creation failed");
        exit(EXIT_FAILURE);
    }
@@ -31,40 +31,35 @@ int main() {
    addr.sin_port = htons(PORT);
    addr.sin_addr.s_addr = INADDR_ANY;
 
-   if(bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+   if(bind(sock, (struct sockaddr*)&addr, sizeof(struct sockaddr)) == -1) {
        perror("socket bind failed");
-       exit(EXIT_FAILURE);
-   }
-
-   if(listen(sock, 3) < 0) {
-       perror("socket listen failed");
-       exit(EXIT_FAILURE);
-   }
-
-   if(new_sock = accept(sock, (struct sockaddr*)&addr,
-			   (socklen_t*)&addrlen) < 0) {
-       perror("socket accept failed");
        exit(EXIT_FAILURE);
    }
    /*Socker creation code end*/
 
    init_serialize_buffer(&buf);
 
-   read(new_sock, (ser_buff_t*)buf, 1024);
-   printf("Serialized data recieved on UNIX socket on \nport=%d buf->size=%d buf->next=%d\n", PORT, buf->size, buf->next);
-
-   if (!buf) {
+   if ((len = recvfrom(sock, buf->b, buf->size, 0,
+		   (struct sockaddr*)&client_addr, &addrlen)) == -1) {
+      printf("Null bytes are recieved\n");
+      return -1;
+   }
+   if (!buf || !(buf->b)) {
       printf("Received data is empty!!");
       free_serialize_buffer(buf);
       return -1;
    }
+
+   printf("%d bytes of serialized data recieved on UNIX socket on port=%d \nbuf->size=%d buf->next=%d\n", len, PORT, buf->size, buf->next);
+   
    person_t *p = deserialize_person(buf);
    if(!p)  {
        free_serialize_buffer(buf);
        return -1;
    }
+
    print_person(p);
-   
-   //free_serialize_buffer(buf);
-   //free(p);
+   free_serialize_buffer(buf);
+   free(p);
+   close(sock);
 }
