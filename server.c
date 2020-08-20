@@ -5,13 +5,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "person.h"
-
-#define PORT 2000
+#include "rpc_common.h"
 
 int main() {
 
    ser_buff_t *buf;
    struct sockaddr_in addr, client_addr;
+   rpc_hdr_t rpc_hdr;
    int addrlen = sizeof(struct sockaddr);
    int sock, opt = 1, len = 0;
 
@@ -50,16 +50,28 @@ int main() {
       return -1;
    }
 
-   printf("%d bytes of serialized data recieved on UNIX socket on port=%d \nbuf->size=%d buf->next=%d\n", len, PORT, buf->size, buf->next);
+   printf("%d bytes of serialized data recieved on UNIX socket on port=%d\n", len, PORT);
    
-   person_t *p = deserialize_person(buf);
-   if(!p)  {
-       free_serialize_buffer(buf);
-       return -1;
+
+   de_serialize_data((char*)&rpc_hdr.rpc_id, buf, 
+		   sizeof(rpc_hdr.rpc_id));
+   de_serialize_data((char*)&rpc_hdr.payload_size, buf, 
+		   sizeof(rpc_hdr.payload_size));
+
+   printf("RPC ID: %u, PAYLOAD SIZE: %u\n", 
+		   rpc_hdr.rpc_id, rpc_hdr.payload_size);
+
+   if (1 == rpc_hdr.rpc_id) {
+
+       person_t *p = deserialize_person(buf);
+       if(!p)  {
+           free_serialize_buffer(buf);
+           return -1;
+       }
+       print_person(p);
+       free(p);
    }
 
-   print_person(p);
    free_serialize_buffer(buf);
-   free(p);
    close(sock);
 }

@@ -44,6 +44,12 @@ get_serialize_buffer_length(ser_buff_t *b) {
     return b->size;
 }
 
+int
+get_serialize_buffer_data_size(ser_buff_t *b) {
+
+    return b->next;
+}
+
 char*
 get_serialize_buffer_current_ptr_offset(ser_buff_t *b) {
 
@@ -120,4 +126,17 @@ void
 reset_serialize_buffer(ser_buff_t *b) {
 
     b->next = 0;
+}
+
+void
+copy_in_serialized_buf_by_offset(ser_buff_t *b,
+				char *val,
+				int size,
+				int offset) {
+
+	if (offset > b->size) {
+	    printf("Broundary check failed. Can't write. Return");
+	    return;
+	}
+	memcpy(b->b + offset, val, size);
 }
